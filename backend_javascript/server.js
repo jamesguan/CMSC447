@@ -1,6 +1,8 @@
 var WebSocketServer = require('websocket').server;
 var http = require('http');
 
+var malware = [];
+
 var server = http.createServer(function (request, response) {});
 console.log("Server running");
 server.listen(13379, function () {});
@@ -33,7 +35,10 @@ var connection;
      checkCredentials(json.username, json.password);
    } else if (json.hasOwnProperty('filename')){
      checkUpload(json);
+   } else if (json.hasOwnProperty('command')){
+     checkCommand(json);
    }
+
 
   } catch (e ) {
    console.log(e.message);
@@ -51,5 +56,32 @@ function checkCredentials (user, pass){
   }
 }
 function checkUpload(json){
+  console.log("checking upload");
+  if(json.filename != ""){
+    connection.send(JSON.stringify({filename: json.filename, valid:true}));
+    malware.push(json);
+  } else {
+    connection.send(JSON.stringify({filename: "", valid:false}));
+  }
 
+}
+function checkCommand(json){
+  if (json.command == "read_array"){
+    /*
+    for (var i = 0; i < malware.length; i++){
+      console.log("i" + i);
+      console.log(malware[i]);
+    }*/
+    console.log(malware);
+  } else if (json.command == "send_array"){
+    /*
+    for (var i = 0; i < malware.length; i++){
+      console.log("Sending from i: " + i);
+      //var objectTemp = malware[i];
+      //console.log(objectTemp);
+      connection.send(JSON.stringify(malware[i]));
+    }
+    */
+    connection.send(JSON.stringify(malware));
+  }
 }
